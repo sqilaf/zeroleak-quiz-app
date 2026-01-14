@@ -1,50 +1,22 @@
 import streamlit as st
 import time
-
 import streamlit.components.v1 as components
 
-# ... kod lain ...
-
-# Masukkan kod ini di mana awak nak 3D tu muncul
-st.write("### 🧊 3D Flange Preview")
-
-# Gantikan URL_GLB_AWAK dengan link fail glb dari GitHub
-# Contoh kod HTML untuk model viewer (Google's component)
-html_code = """
-<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js"></script>
-<style>
-    model-viewer {
-        width: 100%;
-        height: 300px;
-        background-color: #262730;
-        border-radius: 20px;
-    }
-</style>
-<model-viewer 
-    src="URL_GLB_AWAK_DI_SINI" 
-    alt="A 3D model of a flange" 
-    auto-rotate 
-    camera-controls>
-</model-viewer>
-"""
-
-components.html(html_code, height=320)
-
-# --- 1. CONFIGURATION & STYLING ---
+# --- 1. CONFIGURATION (WAJIB DUDUK ATAS SEKALI) ---
 st.set_page_config(page_title="ZeroLeak Quiz", page_icon="⚙️", layout="centered")
 
-# Custom CSS untuk UI "Industrial Gaming"
+# --- 2. CUSTOM CSS ---
 st.markdown("""
     <style>
-    /* 1. Background yang lebih hidup (Dark Industrial Gradient) */
+    /* Background */
     .stApp {
         background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #000000 100%);
         background-attachment: fixed;
     }
     
-    /* 2. Card Container Style */
+    /* Card Style */
     .quiz-card {
-        background: rgba(255, 255, 255, 0.1); /* Glassmorphism effect */
+        background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(10px);
         padding: 30px;
         border-radius: 20px;
@@ -55,7 +27,7 @@ st.markdown("""
         color: white;
     }
     
-    /* 3. Center Header (Flexbox) */
+    /* Header Center */
     .header-container {
         display: flex;
         justify-content: center;
@@ -64,9 +36,9 @@ st.markdown("""
         padding-bottom: 20px;
     }
     
-    /* 4. Buttons Design */
+    /* Buttons */
     .stButton button {
-        background-color: #FF9F1C; /* Industrial Orange */
+        background-color: #FF9F1C;
         color: black;
         width: 100%;
         border-radius: 12px;
@@ -79,90 +51,117 @@ st.markdown("""
         transform: scale(1.02);
     }
     
-    /* Headers inside card */
-    h2 {
-        color: #FFFFFF;
-        font-family: 'Arial', sans-serif;
-        font-weight: 700;
-    }
+    /* Headings */
+    h2 { color: #FFFFFF; font-family: 'Arial', sans-serif; font-weight: 700; }
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. GAME DATA (QUESTIONS) - Updated Icons ---
-# Nota: Saya guna link icon yang stabil. Kalau nak tukar, ganti URL dalam "image".
+# --- 3. SIDEBAR WITH 3D MODEL ---
+with st.sidebar:
+    st.markdown("### 🧊 3D Flange Reference")
+    st.caption("Putar model ini untuk rujukan:")
+    
+    # URL RAW GITHUB (Penting: Guna link 'raw.githubusercontent.com')
+    glb_url = "https://raw.githubusercontent.com/sqilaf/zeroleak-quiz-app/main/flange.glb"
+
+    html_code = f"""
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js"></script>
+    <style>
+        model-viewer {{
+            width: 100%;
+            height: 250px;
+            background-color: #262730;
+            border-radius: 15px;
+            border: 1px solid #444;
+        }}
+    </style>
+    <model-viewer 
+        src="{glb_url}" 
+        alt="A 3D model of a flange" 
+        auto-rotate 
+        camera-controls
+        shadow-intensity="1">
+    </model-viewer>
+    """
+    components.html(html_code, height=270)
+    
+    st.markdown("---")
+    st.markdown("### 🏆 Scoreboard")
+    if 'score' not in st.session_state: st.session_state.score = 0
+    st.write(f"Current Points: **{st.session_state.score}**")
+    st.info("Tip: Gunakan model 3D di atas untuk bantu jawab soalan!")
+
+# --- 4. GAME DATA (QUESTIONS) ---
 questions = [
     {
         "q": "🛑 SAFETY FIRST: Why loosen the lowest bolt (6 o'clock) first?",
         "options": ["To drain fluid safely (Line of Fire)", "It is easier to reach", "To keep gasket in place"],
         "answer": "To drain fluid safely (Line of Fire)",
-        "image": "https://cdn-icons-png.flaticon.com/512/10308/10308976.png" # Industrial Danger Icon
+        "image": "https://cdn-icons-png.flaticon.com/512/10308/10308976.png"
     },
     {
         "q": "🏷️ TAG CHECK: You see a YELLOW TAG. What is the status?",
         "options": ["Flange is Broken", "Flange is Fully Tightened (Torqued)", "Flange is Leaking"],
         "answer": "Flange is Fully Tightened (Torqued)",
-        "image": "https://cdn-icons-png.flaticon.com/512/10698/10698767.png" # Tag Icon
+        "image": "https://cdn-icons-png.flaticon.com/512/10698/10698767.png"
     },
     {
         "q": "⚠️ HAZARD ALERT: Which tag color means pipe is NOT sealed?",
         "options": ["Green", "Blue", "Yellow"],
         "answer": "Blue",
-        "image": "https://cdn-icons-png.flaticon.com/512/564/564619.png" # Alert Triangle
+        "image": "https://cdn-icons-png.flaticon.com/512/564/564619.png"
     },
     {
         "q": "🔩 TECHNIQUE: Which tightening pattern prevents leaks?",
         "options": ["Clockwise Circle", "Star / Cross Pattern", "Random Pattern"],
         "answer": "Star / Cross Pattern",
-        "image": "https://cdn-icons-png.flaticon.com/512/8051/8051388.png" # Flange Bolt Icon
+        "image": "https://cdn-icons-png.flaticon.com/512/8051/8051388.png"
     },
     {
         "q": "📈 TORQUE STAGES: What are the correct 3 passes?",
         "options": ["10% -> 50% -> 100%", "30% -> 60% -> 100%", "50% -> 75% -> 100%"],
         "answer": "30% -> 60% -> 100%",
-        "image": "https://cdn-icons-png.flaticon.com/512/2823/2823933.png" # Stats/Levels Icon
+        "image": "https://cdn-icons-png.flaticon.com/512/2823/2823933.png"
     },
     {
         "q": "📏 ALIGNMENT: Max allowable gap difference?",
         "options": ["0.8 mm", "2.0 mm", "5.0 mm"],
         "answer": "0.8 mm",
-        "image": "https://cdn-icons-png.flaticon.com/512/1684/1684346.png" # Caliper/Measure Icon
+        "image": "https://cdn-icons-png.flaticon.com/512/1684/1684346.png"
     },
     {
         "q": "🛢️ LUBRICATION: Where to apply lube?",
         "options": ["Gasket surface", "Bolt threads & Nut face", "Flange face"],
         "answer": "Bolt threads & Nut face",
-        "image": "https://cdn-icons-png.flaticon.com/512/4666/4666497.png" # Lubricant/Oil Drop
+        "image": "https://cdn-icons-png.flaticon.com/512/4666/4666497.png"
     },
     {
         "q": "⚙️ GASKET RULE: How to handle the gasket?",
         "options": ["Reuse old gasket", "Use Glue", "Insert NEW gasket"],
         "answer": "Insert NEW gasket",
-        "image": "https://cdn-icons-png.flaticon.com/512/3683/3683220.png" # Gasket/Part Icon
+        "image": "https://cdn-icons-png.flaticon.com/512/3683/3683220.png"
     },
     {
         "q": "🔧 TOOL CHECK: Tool for 'Snug Tight'?",
         "options": ["Hydraulic Wrench", "Hand Spanner", "Impact Gun"],
         "answer": "Hand Spanner",
-        "image": "https://cdn-icons-png.flaticon.com/512/2558/2558944.png" # Wrench Icon
+        "image": "https://cdn-icons-png.flaticon.com/512/2558/2558944.png"
     },
     {
         "q": "✅ FINAL INSPECTION: Tag for 'Leak Proof'?",
         "options": ["Red Tag", "Blue Tag", "Green Tag"],
         "answer": "Green Tag",
-        "image": "https://cdn-icons-png.flaticon.com/512/4425/4425788.png" # Certified/Check Icon
+        "image": "https://cdn-icons-png.flaticon.com/512/4425/4425788.png"
     }
 ]
 
-# --- 3. SESSION STATE MANAGEMENT ---
+# --- 5. SESSION STATE MANAGEMENT ---
 if 'current_question' not in st.session_state:
     st.session_state.current_question = 0
-if 'score' not in st.session_state:
-    st.session_state.score = 0
 if 'game_over' not in st.session_state:
     st.session_state.game_over = False
 
-# --- 4. HEADER (CENTERED) ---
-# Menggunakan HTML Flexbox untuk center align icon dan text
+# --- 6. HEADER (CENTERED) ---
 st.markdown("""
 <div class="header-container">
     <img src="https://cdn-icons-png.flaticon.com/512/6009/6009864.png" width="80">
@@ -176,13 +175,12 @@ if not st.session_state.game_over:
     st.progress(progress)
     st.caption(f"🔧 Question: {st.session_state.current_question + 1}/{len(questions)}")
 
-# --- 5. GAME DISPLAY ---
+# --- 7. GAME DISPLAY ---
 if not st.session_state.game_over:
     
-    # Get current question data
     q_data = questions[st.session_state.current_question]
     
-    # === THE CARD UI ===
+    # CARD UI
     st.markdown(f"""
     <div class="quiz-card">
         <img src="{q_data['image']}" width="80" style="margin-bottom: 15px; border-radius:10px;">
@@ -190,20 +188,18 @@ if not st.session_state.game_over:
     </div>
     """, unsafe_allow_html=True)
     
-    # Answer Buttons
+    # ANSWER FORM
     with st.form(key=f"q_form_{st.session_state.current_question}"):
         user_choice = st.radio("Select Action:", q_data['options'], label_visibility="collapsed")
         submit_btn = st.form_submit_button("CONFIRM CHOICE ➤")
     
     if submit_btn:
-        # Check Answer
         if user_choice == q_data['answer']:
             st.session_state.score += 1
             st.toast("✅ Correct! Good job engineer.", icon="🛠️")
         else:
             st.toast(f"❌ Wrong! Correct: {q_data['answer']}", icon="⚠️")
         
-        # Delay slightly for effect
         time.sleep(0.8)
         
         if st.session_state.current_question < len(questions) - 1:
@@ -214,7 +210,7 @@ if not st.session_state.game_over:
             st.rerun()
 
 else:
-    # === GAME OVER / RESULT SCREEN ===
+    # RESULT SCREEN
     score = st.session_state.score
     st.markdown("---")
     
@@ -245,10 +241,3 @@ else:
         st.session_state.score = 0
         st.session_state.game_over = False
         st.rerun()
-
-# --- SIDEBAR ---
-with st.sidebar:
-    st.markdown("### 🏆 Scoreboard")
-    st.write(f"Current Points: **{st.session_state.score}**")
-    st.markdown("---")
-    st.info("Remember: AR helps you visualize, VR helps you practice, and this Quiz certifies your knowledge.")
