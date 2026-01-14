@@ -27,13 +27,13 @@ st.markdown("""
         color: white;
     }
     
-    /* Header Center */
+    /* Header Center with Gap */
     .header-container {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 15px;
-        padding-bottom: 20px;
+        gap: 20px; /* Jarak antara icon dan teks */
+        padding-bottom: 30px;
     }
     
     /* Buttons */
@@ -56,20 +56,20 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 3. SIDEBAR WITH 3D MODEL ---
+# --- 3. SIDEBAR WITH 3D MODEL (SIZE DIPERBESAR) ---
 with st.sidebar:
     st.markdown("### 🧊 3D Flange Reference")
-    st.caption("Putar model ini untuk rujukan:")
     
-    # URL RAW GITHUB (Penting: Guna link 'raw.githubusercontent.com')
+    # URL RAW GITHUB
     glb_url = "https://raw.githubusercontent.com/sqilaf/zeroleak-quiz-app/main/flange.glb"
 
+    # SAYA DAH TUKAR HEIGHT DI SINI KEPADA 450px (LEBIH BESAR)
     html_code = f"""
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js"></script>
     <style>
         model-viewer {{
             width: 100%;
-            height: 250px;
+            height: 450px; /* <--- SIZE TINGGI BARU */
             background-color: #262730;
             border-radius: 15px;
             border: 1px solid #444;
@@ -83,13 +83,14 @@ with st.sidebar:
         shadow-intensity="1">
     </model-viewer>
     """
-    components.html(html_code, height=270)
+    # Component frame pun kena besar sikit dari model viewer
+    components.html(html_code, height=470)
     
     st.markdown("---")
     st.markdown("### 🏆 Scoreboard")
     if 'score' not in st.session_state: st.session_state.score = 0
     st.write(f"Current Points: **{st.session_state.score}**")
-    st.info("Tip: Gunakan model 3D di atas untuk bantu jawab soalan!")
+    st.info("Tip: Gunakan model 3D di atas (boleh pusing & zoom) untuk bantu jawab soalan!")
 
 # --- 4. GAME DATA (QUESTIONS) ---
 questions = [
@@ -161,11 +162,14 @@ if 'current_question' not in st.session_state:
 if 'game_over' not in st.session_state:
     st.session_state.game_over = False
 
-# --- 6. HEADER (CENTERED) ---
+# --- 6. HEADER BARU (FLANGE ICON + TITLE + WRENCH ICON) ---
 st.markdown("""
 <div class="header-container">
-    <img src="https://cdn-icons-png.flaticon.com/512/6009/6009864.png" width="80">
-    <h1 style="color:white; margin:0;">ZEROLEAK QUIZ</h1>
+    <img src="https://cdn-icons-png.flaticon.com/512/8051/8051388.png" width="85">
+    
+    <h1 style="color:white; margin:0; text-shadow: 2px 2px 4px #000000;">ZEROLEAK QUIZ</h1>
+    
+    <img src="https://cdn-icons-png.flaticon.com/512/2558/2558944.png" width="85">
 </div>
 """, unsafe_allow_html=True)
 
