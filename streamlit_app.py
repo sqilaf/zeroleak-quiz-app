@@ -1,188 +1,209 @@
 import streamlit as st
+import time
 
-# --- PAGE CONFIGURATION ---
-st.set_page_config(
-    page_title="ZeroLeak Assessment",
-    page_icon="🛠️",
-    layout="centered"
-)
+# --- 1. CONFIGURATION & STYLING ---
+st.set_page_config(page_title="ZeroLeak Quest", page_icon="🎮", layout="centered")
 
-# --- SIDEBAR INFO ---
-with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/10329/10329486.png", width=100)
-    st.title("Project ZeroLeak")
-    st.markdown("### 🎓 Training Flow")
-    st.info("1️⃣ **AR Mode**: Learn the Theory")
-    st.info("2️⃣ **VR Mode**: Simulate the Job")
-    st.info("3️⃣ **Web Quiz**: Test Competency")
-    st.warning("This assessment is optional but recommended to certify your knowledge.")
-
-# --- MAIN HEADER ---
-st.title("🛠️ ZeroLeak: Competency Check")
-st.caption("Post-Training Assessment for Flange Management System")
-st.markdown("---")
-
-st.write("""
-**Instructions:** Please complete this quiz **AFTER** experiencing the AR Learning Module and VR Simulation. 
-You need to score at least **8/10** to be considered 'Site Ready'.
-""")
-
-# --- QUIZ FORM ---
-with st.form("quiz_form"):
+# Custom CSS untuk jadikan UI nampak macam "Game Card"
+st.markdown("""
+    <style>
+    /* Main Background */
+    .stApp {
+        background-color: #0E1117;
+    }
     
-    # QUESTION 1
-    st.subheader("1. Safety First (Line of Fire)")
-    st.write("When disassembling a flange, why must you loosen the **lowest bolt (6 o'clock)** first?")
-    q1 = st.radio(
-        "Select the best reason:",
-        ("It is the easiest bolt to reach.",
-         "To allow trapped fluid to drain downwards, away from your body.",
-         "To keep the gasket from falling out."),
-        key="q1"
-    )
+    /* Card Container Style */
+    .quiz-card {
+        background-color: #262730;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        border: 2px solid #4B4B4B;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    /* Progress Bar Color */
+    .stProgress > div > div > div > div {
+        background-color: #00FF00;
+    }
+    
+    /* Buttons */
+    .stButton button {
+        width: 100%;
+        border-radius: 10px;
+        font-weight: bold;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    
+    /* Headers inside card */
+    h2 {
+        color: #FFFFFF;
+        text-shadow: 0 0 10px #000000;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-    # QUESTION 2
-    st.subheader("2. Tagging System (Status)")
-    st.write("You see a **YELLOW TAG** on a flange joint. What does this indicate?")
-    q2 = st.radio(
-        "Identify the status:",
-        ("Flange is Broken / Disassembled.",
-         "Flange is Hand Tightened only.",
-         "Flange is Fully Tightened (Torqued)."),
-        key="q2"
-    )
+# --- 2. GAME DATA (QUESTIONS) ---
+questions = [
+    {
+        "q": "🛑 SAFETY CHECK: Why loosen the lowest bolt (6 o'clock) first?",
+        "options": ["To drain fluid safely (Line of Fire)", "It is easier to reach", "To keep gasket in place"],
+        "answer": "To drain fluid safely (Line of Fire)",
+        "image": "https://cdn-icons-png.flaticon.com/512/1165/1165674.png" # Safety Icon
+    },
+    {
+        "q": "🏷️ STATUS CHECK: You see a YELLOW TAG. What does it mean?",
+        "options": ["Flange is Broken", "Flange is Fully Tightened (Torqued)", "Flange is Leaking"],
+        "answer": "Flange is Fully Tightened (Torqued)",
+        "image": "https://cdn-icons-png.flaticon.com/512/2680/2680903.png" # Tag Icon
+    },
+    {
+        "q": "⚠️ DANGER ZONE: Which tag color means pipe is NOT sealed?",
+        "options": ["Green", "Blue", "Yellow"],
+        "answer": "Blue",
+        "image": "https://cdn-icons-png.flaticon.com/512/564/564619.png" # Danger Icon
+    },
+    {
+        "q": "🔩 TECHNIQUE: Which tightening pattern prevents leaks?",
+        "options": ["Clockwise Circle", "Star / Cross Pattern", "Random Pattern"],
+        "answer": "Star / Cross Pattern",
+        "image": "https://cdn-icons-png.flaticon.com/512/3756/3756748.png" # Bolt Icon
+    },
+    {
+        "q": "📈 TORQUE STAGES: What are the correct 3 passes?",
+        "options": ["10% -> 50% -> 100%", "30% -> 60% -> 100%", "50% -> 75% -> 100%"],
+        "answer": "30% -> 60% -> 100%",
+        "image": "https://cdn-icons-png.flaticon.com/512/8061/8061614.png" # Chart Icon
+    },
+    {
+        "q": "📐 ALIGNMENT: Max allowable gap difference?",
+        "options": ["0.8 mm", "2.0 mm", "5.0 mm"],
+        "answer": "0.8 mm",
+        "image": "https://cdn-icons-png.flaticon.com/512/12603/12603780.png" # Ruler Icon
+    },
+    {
+        "q": "💧 LUBRICATION: Where to apply lube?",
+        "options": ["Gasket surface", "Bolt threads & Nut face", "Flange face"],
+        "answer": "Bolt threads & Nut face",
+        "image": "https://cdn-icons-png.flaticon.com/512/3079/3079172.png" # Oil Icon
+    },
+    {
+        "q": "🧩 GASKET RULE: How to handle the gasket?",
+        "options": ["Reuse old gasket", "Use Glue", "Insert NEW gasket"],
+        "answer": "Insert NEW gasket",
+        "image": "https://cdn-icons-png.flaticon.com/512/9364/9364803.png" # Gasket Icon
+    },
+    {
+        "q": "🔧 TOOL CHECK: Tool for 'Snug Tight'?",
+        "options": ["Hydraulic Wrench", "Hand Spanner", "Impact Gun"],
+        "answer": "Hand Spanner",
+        "image": "https://cdn-icons-png.flaticon.com/512/2558/2558944.png" # Wrench Icon
+    },
+    {
+        "q": "✅ FINAL CHECK: Tag for 'Leak Proof'?",
+        "options": ["Red Tag", "Blue Tag", "Green Tag"],
+        "answer": "Green Tag",
+        "image": "https://cdn-icons-png.flaticon.com/512/190/190411.png" # Check Icon
+    }
+]
 
-    # QUESTION 3
-    st.subheader("3. Tagging System (Danger)")
-    st.write("Which tag color indicates that the pipe is **NOT SEALED** and dangerous?")
-    q3 = st.radio(
-        "Select the color:",
-        ("🟢 Green", "🔵 Blue", "🟡 Yellow"),
-        key="q3"
-    )
+# --- 3. SESSION STATE MANAGEMENT ---
+if 'current_question' not in st.session_state:
+    st.session_state.current_question = 0
+if 'score' not in st.session_state:
+    st.session_state.score = 0
+if 'game_over' not in st.session_state:
+    st.session_state.game_over = False
 
-    # QUESTION 4
-    st.subheader("4. Torque Sequence")
-    st.write("To prevent uneven pressure and leaks, which tightening pattern must be used?")
-    q4 = st.radio(
-        "Select the pattern:",
-        ("Circular Pattern (Clockwise)",
-         "Star / Cross Pattern",
-         "Random Pattern"),
-        key="q4"
-    )
+# --- 4. GAME LOGIC ---
 
-    # QUESTION 5
-    st.subheader("5. Torque Application Stages")
-    st.write("According to the procedure, what are the correct **three passes** for torque tightening?")
-    q5 = st.radio(
-        "Select the percentage sequence:",
-        ("10% ➝ 50% ➝ 100%",
-         "30% ➝ 60% ➝ 100%",
-         "50% ➝ 75% ➝ 100%"),
-        key="q5"
-    )
+# Header Logo
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    st.image("https://cdn-icons-png.flaticon.com/512/10329/10329486.png", width=80)
+    st.markdown("<h1 style='text-align: center; margin-top: -10px;'>ZeroLeak Quest</h1>", unsafe_allow_html=True)
 
-    # QUESTION 6
-    st.subheader("6. Alignment Check")
-    st.write("Before inserting bolts, the flange faces must be parallel. What is the **maximum allowable gap difference**?")
-    q6 = st.radio(
-        "Select the value:",
-        ("0.8 mm", "2.0 mm", "5.0 mm"),
-        key="q6"
-    )
+# Progress Bar
+if not st.session_state.game_over:
+    progress = (st.session_state.current_question / len(questions))
+    st.progress(progress)
+    st.caption(f"Mission Progress: {st.session_state.current_question + 1}/{len(questions)}")
 
-    # QUESTION 7
-    st.subheader("7. Lubrication")
-    st.write("Where should the lubricant be applied on the fasteners?")
-    q7 = st.radio(
-        "Select the correct location:",
-        ("On the gasket surface only.",
-         "On the bolt threads and the face of the nuts.",
-         "On the flange face."),
-        key="q7"
-    )
+# --- DISPLAY CARD OR RESULT ---
+if not st.session_state.game_over:
+    
+    # Get current question data
+    q_data = questions[st.session_state.current_question]
+    
+    # === THE CARD UI ===
+    st.markdown(f"""
+    <div class="quiz-card">
+        <img src="{q_data['image']}" width="60" style="margin-bottom: 10px;">
+        <h2>{q_data['q']}</h2>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Answer Buttons
+    # We use a form to group the radio button and submit
+    with st.form(key=f"q_form_{st.session_state.current_question}"):
+        user_choice = st.radio("Choose your action:", q_data['options'], label_visibility="collapsed")
+        submit_btn = st.form_submit_button("LOCK ANSWER 🔒")
+    
+    if submit_btn:
+        # Check Answer
+        if user_choice == q_data['answer']:
+            st.session_state.score += 1
+            st.toast("✅ Correct! System Secure.", icon="🛡️")
+        else:
+            st.toast(f"❌ Wrong! Correct: {q_data['answer']}", icon="⚠️")
+        
+        # Delay slightly for effect then move next
+        time.sleep(0.5)
+        
+        if st.session_state.current_question < len(questions) - 1:
+            st.session_state.current_question += 1
+            st.rerun()
+        else:
+            st.session_state.game_over = True
+            st.rerun()
 
-    # QUESTION 8
-    st.subheader("8. Gasket Installation")
-    st.write("During assembly (Step 3), how should you handle the gasket?")
-    q8 = st.radio(
-        "Select the correct action:",
-        ("Reuse the old gasket to save cost.",
-         "Apply glue to the gasket to hold it.",
-         "Insert a NEW gasket and let it rest on the bottom bolts."),
-        key="q8"
-    )
-
-    # QUESTION 9
-    st.subheader("9. Snug Tightening")
-    st.write("In Step 4 (Snug Tight), which tool should you use?")
-    q9 = st.radio(
-        "Select the tool:",
-        ("Hydraulic Torque Wrench.",
-         "Hand or Standard Spanner/Wrench.",
-         "Impact Gun."),
-        key="q9"
-    )
-
-    # QUESTION 10
-    st.subheader("10. Final Verification")
-    st.write("After the pressure test is passed (Leak Proof), which tag is applied?")
-    q10 = st.radio(
-        "Select the final tag:",
-        ("🔴 Red Tag", "🔵 Blue Tag", "🟢 Green Tag"),
-        key="q10"
-    )
-
+else:
+    # === GAME OVER SCREEN ===
+    score = st.session_state.score
     st.markdown("---")
-    submitted = st.form_submit_button("Submit Assessment")
-
-# --- SCORING LOGIC ---
-if submitted:
-    score = 0
     
-    # Marking Scheme (Based on provided images/PDF)
-    if q1 == "To allow trapped fluid to drain downwards, away from your body.": score += 1
-    if q2 == "Flange is Fully Tightened (Torqued).": score += 1
-    if q3 == "🔵 Blue": score += 1
-    if q4 == "Star / Cross Pattern": score += 1
-    if q5 == "30% ➝ 60% ➝ 100%": score += 1
-    if q6 == "0.8 mm": score += 1
-    if q7 == "On the bolt threads and the face of the nuts.": score += 1
-    if q8 == "Insert a NEW gasket and let it rest on the bottom bolts.": score += 1
-    if q9 == "Hand or Standard Spanner/Wrench.": score += 1
-    if q10 == "🟢 Green Tag": score += 1
-
-    # --- RESULT DISPLAY ---
-    st.subheader("Assessment Result")
-    my_bar = st.progress(0)
-    
-    # Animation for score
-    score_percent = int((score / 10) * 100)
-    my_bar.progress(score_percent)
-
     if score >= 8:
-        st.success(f"🎉 EXCELLENT! You scored {score}/10.")
         st.balloons()
-        st.write("You have demonstrated strong knowledge of the Flange Management System.")
-    elif score >= 5:
-        st.warning(f"⚠️ GOOD EFFORT. You scored {score}/10.")
-        st.write("You might want to review the AR module for specific torque procedures.")
+        st.markdown(f"""
+        <div class="quiz-card" style="border-color: #00FF00;">
+            <h1>🏆 MISSION ACCOMPLISHED</h1>
+            <h2 style="color: #00FF00;">Score: {score}/10</h2>
+            <p>You are certified for VR Simulation!</p>
+            <h1>ACCESS CODE: <span style="background-color: #333; padding: 5px 15px; border-radius: 5px;">8829</span></h1>
+        </div>
+        """, unsafe_allow_html=True)
     else:
-        st.error(f"❌ PLEASE REVIEW. You scored {score}/10.")
-        st.write("Please revisit the AR Learning Module and try again.")
+        st.markdown(f"""
+        <div class="quiz-card" style="border-color: #FF0000;">
+            <h1>⚠️ MISSION FAILED</h1>
+            <h2 style="color: #FF0000;">Score: {score}/10</h2>
+            <p>Safety standards not met. Please review AR Training.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    if st.button("🔄 RESTART MISSION"):
+        st.session_state.current_question = 0
+        st.session_state.score = 0
+        st.session_state.game_over = False
+        st.rerun()
 
-    # Expandable Answer Key (For learning purposes)
-    with st.expander("View Correct Answers (For Revision)"):
-        st.markdown("""
-        1. [cite_start]**Line of Fire**: Drain fluid away from body[cite: 1544].
-        2. **Yellow Tag**: Fully Torqued.
-        3. **Blue Tag**: Broken/Open (Dangerous).
-        4. **Pattern**: Star/Cross Pattern.
-        5. [cite_start]**Stages**: 30% -> 60% -> 100%[cite: 1544].
-        6. [cite_start]**Gap**: Max 0.8 mm[cite: 1544].
-        7. [cite_start]**Lube**: Threads and Nut Face[cite: 1544].
-        8. [cite_start]**Gasket**: Use New Gasket[cite: 1544].
-        9. [cite_start]**Snug**: Hand/Standard Wrench[cite: 1544].
-        10. **Green Tag**: Leak Proof/Tested.
-        """)
+# --- SIDEBAR (Context) ---
+with st.sidebar:
+    st.title("Project ZeroLeak")
+    st.markdown("---")
+    st.write("Current Score:")
+    st.metric(label="Points", value=st.session_state.score)
+    st.markdown("---")
+    st.info("💡 Tip: Review the AR diagrams if you get stuck!")
